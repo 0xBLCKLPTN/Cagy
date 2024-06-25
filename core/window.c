@@ -7,6 +7,9 @@
 #define WINDOW_WIDTH 600
 #define WINDOW_HEIGHT 400
 
+
+#include "../components/rect_2d.h"
+
 typedef struct CagyWindow_t
 {
   SDL_Renderer* renderer;
@@ -77,17 +80,10 @@ int main(int argc, char* argv[])
 
     // Something else
       // Test RECT 2D COMPONENT
-    SDL_SetRenderDrawColor(cw.renderer, 0, 0, 255, 255);
-    
-    SDL_Rect rect;
-    rect.x = 100;
-    rect.y = 100;
-    rect.w = 200;
-    rect.h = 200;
-
-
-    SDL_RenderFillRect(cw.renderer, &rect);
-
+        Rect2D_s* rect;
+        Rect2D_s* rect2;
+        rect = drawRect2D(0, 0, 255, 255, 200, 200, 100, 100, cw.renderer);
+        rect2 = drawRect2D(0, 255, 0, 255, 200, 200, 200, 100, cw.renderer);
       //
     // -----
 
