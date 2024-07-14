@@ -40,6 +40,10 @@ int CagyWindow::render() {
   {
     operations[i](this->renderer, this->window);
   }
+
+  
+
+  
   SDL_RenderPresent(this->renderer);
   SDL_Delay(16);  
 }

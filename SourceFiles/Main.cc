@@ -130,7 +130,7 @@ int main(void)
   Operator cw_operator;
   CagyWindow cw;
 
-  cw_operator.LoadOperation(draw_rect);
+  //cw_operator.LoadOperation(draw_rect);
   cw.start_main_loop(cw_operator.GetOperations());
   return 0;
 }
