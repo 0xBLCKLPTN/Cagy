@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "./Window.hh"
 #include <vector>
+#include <SDL_image.h>
 
 #define WINDOW_TITLE "Cagy"
 
@@ -16,6 +17,8 @@ int CagyWindow::InitWindow()
     printf("Can't init SDL2: %s\n", SDL_GetError());
     return -1;
   }
+  SDL_Init(SDL_INIT_VIDEO);
+  IMG_Init(IMG_INIT_PNG);
 
   window = SDL_CreateWindow(WINDOW_TITLE, 0,0, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
 
@@ -33,7 +36,6 @@ int CagyWindow::InitWindow()
 int CagyWindow::render() {
   SDL_SetRenderDrawColor(this->renderer, 255, 0, 0, 255);
   SDL_RenderClear(this->renderer);
-  printf("%li\n", this->operations.size());
   for (int i = 0; i<this->operations.size(); i++)
   {
     operations[i](this->renderer, this->window);
@@ -42,15 +44,10 @@ int CagyWindow::render() {
   SDL_Delay(16);  
 }
 
-int CagyWindow::LoadOperation(render_operation operation) {
-  printf("Loading new Cagy Operation: %p\n", operation);
-  this->operations.push_back(operation);
-  return 0;
-}
-
-int CagyWindow::start_main_loop() {
+int CagyWindow::start_main_loop(std::vector<render_operation> operations) {
   if (this->InitWindow() == -1) exit(-1);
   running = true;
+  this->operations = operations;
   while (running)
   {
     while (SDL_PollEvent(&this->event)) {
@@ -58,7 +55,7 @@ int CagyWindow::start_main_loop() {
       if (this->event.type == SDL_QUIT)
         running = false;
     }
-  this->render();       
+  this->render();
   }
   SDL_DestroyRenderer(this->renderer);
   SDL_DestroyWindow(this->window);

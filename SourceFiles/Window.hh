@@ -4,11 +4,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <vector>
-
-typedef int (*render_operation)(SDL_Renderer*, SDL_Window*);
-
-int draw_rect(SDL_Renderer* renderer, SDL_Window* window);
-int get_middle(int max, int min);
+#include "./Core.hh"
 
 class CagyWindow
 {
@@ -24,9 +20,8 @@ private:
 public:
   int InitWindow();
   SDL_Renderer* GetRenderer();
-  int start_main_loop();    
+  int start_main_loop(std::vector<render_operation> operations);    
   int render();
-  int LoadOperation(render_operation operation);
 };
 
 #endif
