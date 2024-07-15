@@ -8,6 +8,7 @@
 #define CORE_HH
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>

@@ -20,17 +20,49 @@ int CagyWindow::InitWindow()
   SDL_Init(SDL_INIT_VIDEO);
   IMG_Init(IMG_INIT_PNG);
 
-  window = SDL_CreateWindow(WINDOW_TITLE, 0,0, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  
+  window = SDL_CreateWindow
+    (
+     WINDOW_TITLE,
+     0,0,
+     WINDOW_WIDTH, WINDOW_HEIGHT,
+     SDL_WINDOW_OPENGL
+   );
 
   if (!window) {
     return -1;
   }
+
+  ctx = SDL_GL_CreateContext(window);
+  SDL_GL_SetSwapInterwal(1);
+
+  /* Set Rendering Settings */
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity()
+  glOrtho(-2.0, 2.0, -2.0, 2.0, -20.0, 20.0);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity()
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+  glShadeModel(GL_SMOOTH);
+
+  
 
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
   if (!renderer) {
     return -1;
   }
+
+  
+  
+}
+
+int CagyWindow::Quit() {
+  if (thix->ctx) SDL_GL_DeleteContext(this->ctx);
+
+  
 }
 
 int CagyWindow::render() {
@@ -59,7 +91,11 @@ int CagyWindow::start_main_loop(std::vector<render_operation> operations) {
       if (this->event.type == SDL_QUIT)
         running = false;
     }
+  SDL_GL_MakeCurrent(this->window, this->ctx);
+  SDL_GetWindowSize(window, this->&w, this->&h);
+  glViewport(0,0,w,h);
   this->render();
+  SDL_GL_SwapWindow(window);
   }
   SDL_DestroyRenderer(this->renderer);
   SDL_DestroyWindow(this->window);

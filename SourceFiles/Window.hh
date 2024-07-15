@@ -13,6 +13,7 @@ private:
   SDL_Window* window;
   SDL_Renderer* renderer;
   SDL_Event event;
+  SDL_GLContext ctx;
   bool running = true;
   int WINDOW_WIDTH = 600;
   int WINDOW_HEIGHT = 400;
@@ -22,6 +23,7 @@ public:
   SDL_Renderer* GetRenderer();
   int start_main_loop(std::vector<render_operation> operations);    
   int render();
+  int Quit();
 };
 
 #endif
