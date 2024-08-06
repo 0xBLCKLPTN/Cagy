@@ -4,11 +4,66 @@
 #include <math.h>
 
 #include <SDL2/SDL.h>
+
+#include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 #include <vector>
+#include <iostream>
 #include "./Window.hh"
-
 typedef int (*render_operation)();
+
+const char* vertexShaderSource = R"(
+#version 330 core
+layout(location = 0) in vec2 position;
+void main() {
+    gl_Position = vec4(position, 0.0, 1.0);
+}
+)";
+
+const char* fragmentShaderSource = R"(
+#version 330 core
+out vec4 FragColor;
+void main() {
+    FragColor = vec4(1.0, 0.5, 0.2, 1.0);
+}
+)";
+GLuint compileShader(const char* source, GLenum type) {
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, nullptr);
+    glCompileShader(shader);
+
+    int success;
+    char infoLog[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        std::cerr << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    return shader;
+}
+
+
+GLuint createShaderProgram(GLuint vertexShader, GLuint fragmentShader) {
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
+
+    int success;
+    char infoLog[512];
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(program, 512, nullptr, infoLog);
+        std::cerr << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    return program;
+}
+
 
 int Draw3DCube() {
     static float color[8][3] = {
@@ -135,6 +190,8 @@ int Draw3DCube() {
     glMatrixMode(GL_MODELVIEW);
     //glRotatef(0.5, 0.0, 1.0, 0.3);
 }
+
+
 
 int main() {
     std::vector<render_operation> operations;
