@@ -14,7 +14,7 @@ include_directories(Cagy ${SDL2_IMAGE_INCLUDE_DIRS})
 #link_directories(${OPENGL_LIBRARY_DIRS})
 include_directories(Cagy ${OPENGL_INCLUDE_DIR})
 
-add_executable(Cagy SourceFiles/Main.cc)
+add_executable(Cagy SourceFiles/Main.cc SourceFiles/Window.hh)
 target_link_libraries(Cagy ${OPENGL_LIBRARIES})
 target_link_libraries(Cagy ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES})
 target_link_libraries(Cagy m)
