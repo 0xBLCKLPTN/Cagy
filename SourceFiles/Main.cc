@@ -133,7 +133,7 @@ int Draw3DCube() {
     glEnd();
    
     glMatrixMode(GL_MODELVIEW);
-    glRotatef(0.2, 1.0, 1.0, 1.0);
+    //glRotatef(0.5, 0.0, 1.0, 0.3);
 }
 
 int main() {
