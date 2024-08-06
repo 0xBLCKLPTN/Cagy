@@ -5,30 +5,108 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <vector>
+
+typedef int (*render_operation)();
 
 
-
-/* Undefine this if you want a flat cube instead of a rainbow cube */
-#define SHADED_CUBE
-
-static SDL_GLContext ctx;
-static SDL_Window* window;
-/* Call this instead of exit(), so we can clean up SDL: atexit() is evil. */
-static void
-quit(int rc)
+class Window
 {
-    if (ctx) {
-        /* SDL_GL_MakeCurrent(0, NULL); *//* doesn't do anything */
-        SDL_GL_DeleteContext(ctx);
+private:
+    SDL_GLContext ctx;
+    SDL_Window* window;
+    SDL_DisplayMode mode;
+    SDL_Event event;
+    int now;
+    int status;
+
+    std::vector<render_operation> operations;
+public:
+    void Render()
+    {
+        for (int i = 0; i<this->operations.size(); i++)
+            operations[i]();
     }
-    SDL_DestroyWindow( window );
-    SDL_Quit();
-    exit(rc);
-}
+    void quit(int rc) {
+        if (ctx) {
+            /* SDL_GL_MakeCurrent(0, NULL); *//* doesn't do anything */
+            SDL_GL_DeleteContext(ctx);
+        }
+        SDL_DestroyWindow( window );
+        SDL_Quit();
+        exit(rc);
+    }
+    
+    int init()
+    {
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+            printf("SDL could not init video %s\n", glGetError());
+            return 0;
+        }
 
-static void
-Render()
-{
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        window = SDL_CreateWindow
+        (
+            "Cagy Engine",
+            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            640, 480,
+            SDL_WINDOW_OPENGL   
+        );
+        if (window == NULL) {
+            printf("SDL could not init window: %s\n", glGetError());
+            return 0;
+        }
+        ctx = SDL_GL_CreateContext(window);
+        SDL_GL_SetSwapInterval(1);
+   
+   
+        /* Set rendering settings */
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(-2.0, 2.0, -2.0, 2.0, -20.0, 20.0);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glShadeModel(GL_SMOOTH);
+    }
+
+    int run(std::vector<render_operation> operations) {
+        int frames = 0;
+        int then = SDL_GetTicks();
+        int done = 0;
+        this->operations = operations;
+        while (!done) {
+            /* Check for events */
+            ++frames;
+            SDL_Event ev;
+            while( SDL_PollEvent( &ev ) )
+            {
+                SDL_PumpEvents();
+                if (ev.type == SDL_QUIT)
+                    done = true;
+            }
+            int w, h;
+            SDL_GL_MakeCurrent(window, ctx);
+            SDL_GetWindowSize(window, &w, &h);
+            glViewport(0, 0, w, h);
+            Render();
+            SDL_GL_SwapWindow(window);
+   
+        }
+   
+        /* Print out some timing information */
+        now = SDL_GetTicks();
+        if (now > then) {
+            printf("%2.2f frames per second\n",
+                   ((double) frames * 1000) / (now - then));
+        }
+        quit(0);
+        return 0;
+    }
+};
+
+int Draw3DCube() {
     static float color[8][3] = {
         {1.0, 1.0, 0.0},
         {1.0, 0.0, 0.0},
@@ -55,7 +133,7 @@ Render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    
     glBegin(GL_QUADS);
-   
+
 #ifdef SHADED_CUBE
     glColor3fv(color[0]);
     glVertex3fv(cube[0]);
@@ -110,7 +188,7 @@ Render()
     glVertex3fv(cube[2]);
     glColor3fv(color[7]);
     glVertex3fv(cube[7]);
-#else /* flat cube */
+#else
     glColor3f(1.0, 0.0, 0.0);
     glVertex3fv(cube[0]);
     glVertex3fv(cube[1]);
@@ -146,91 +224,18 @@ Render()
     glVertex3fv(cube[1]);
     glVertex3fv(cube[2]);
     glVertex3fv(cube[7]);
-#endif /* SHADED_CUBE */
-   
+#endif
+    
     glEnd();
    
     glMatrixMode(GL_MODELVIEW);
     glRotatef(0.2, 1.0, 1.0, 1.0);
 }
 
-int
-main(int argc, char *argv[])
-{
-    int value;
-    int i, done;
-    SDL_DisplayMode mode;
-    SDL_Event event;
-    Uint32 then, now, frames;
-    int status;
-
-    //Initialize SDL
-    if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
-    {
-        printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
-        return 1;
-    }
-   
-    //Create window
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    window = SDL_CreateWindow
-    (
-     "SDL AR Example",
-     SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-     640, 480,
-     SDL_WINDOW_OPENGL
-     );
-   
-    if( window == NULL )
-    {
-        printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
-        return 1;
-    }
-   
-    //creating new context
-    ctx = SDL_GL_CreateContext(window);
-    SDL_GL_SetSwapInterval(1);
-   
-   
-    /* Set rendering settings */
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(-2.0, 2.0, -2.0, 2.0, -20.0, 20.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glShadeModel(GL_SMOOTH);
-   
-    /* Main render loop */
-    frames = 0;
-    then = SDL_GetTicks();
-    done = 0;
-    while (!done) {
-        /* Check for events */
-        ++frames;
-        SDL_Event ev;
-        while( SDL_PollEvent( &ev ) )
-        {
-            SDL_PumpEvents();
-            if (ev.type == SDL_QUIT)
-                done = true;
-        }
-        int w, h;
-        SDL_GL_MakeCurrent(window, ctx);
-        SDL_GetWindowSize(window, &w, &h);
-        glViewport(0, 0, w, h);
-        Render();
-        SDL_GL_SwapWindow(window);
-   
-    }
-   
-    /* Print out some timing information */
-    now = SDL_GetTicks();
-    if (now > then) {
-        printf("%2.2f frames per second\n",
-               ((double) frames * 1000) / (now - then));
-    }
-    quit(0);
-    return 0;
+int main() {
+    std::vector<render_operation> operations;
+    operations.push_back(Draw3DCube);
+    Window cw;
+    cw.init();
+    cw.run(operations);
 }
